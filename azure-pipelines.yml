@@ -49,20 +49,18 @@ stages:
       runOnce:
         deploy:
           steps:
-          - task: Bash@3
+          - task: CmdLine@2
             displayName: Stop Current Container
             inputs:
-              targetType: 'inline'
               script: 'docker rm -f  weighttracker || true'
           - task: Docker@2
             displayName: 'Login to Registry'
             inputs:
               containerRegistry: $(dockerRegistryServiceConnection)
               command: 'login'
-          - task: Bash@3
+          - task: CmdLine@2
             displayName: Pull image
             inputs:
-              targetType: 'inline'
               script: 'docker pull $(containerRegistry)/$(imageRepository):$(tag)'
           - task: Bash@3
             displayName:  Run Container
