@@ -1,0 +1,104 @@
+trigger:
+- master
+# - feature/*
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'b9204bf2-2696-4895-8754-d685d5d6182a'
+  imageRepository: 'weighttrackerimage'
+  containerRegistry: 'weighttrackerregistry.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: CI
+  displayName: Build and push 
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      name: weight-tracker-pool
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+
+    # CD staging
+- stage: DeployToStaging
+  # condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
+  jobs:
+  - deployment: staging
+    displayName: Deploy to Staging
+    environment:
+      name: staging
+      resourceType: VirtualMachine
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: Bash@3
+            displayName: Stop Current Container
+            inputs:
+              targetType: 'inline'
+              script: 'docker rm -f  weighttracker || true'
+          - task: Docker@2
+            displayName: 'Login to Registry'
+            inputs:
+              containerRegistry: $(dockerRegistryServiceConnection)
+              command: 'login'
+          - task: Bash@3
+            displayName: Pull image
+            inputs:
+              targetType: 'inline'
+              script: 'docker pull $(containerRegistry)/$(imageRepository):$(tag)'
+          - task: Bash@3
+            displayName:  Run Container
+            inputs:
+              targetType: 'inline'
+              script: 'docker run -d --name weighttracker -p 8080:8080 -e PGHOST=$(PG_HOST) -e PORT=$(PORT) -e HOST=$(HOST) -e PGUSERNAME=$(PG_USERNAME) -e PGDATABASE=postgres -e PGPASSWORD=$(PG_PASSWORD) -e PGPORT=$(PG_PORT) -e HOST_URL=$(HOST_URL) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(OKTA_ORG_URL) -e OKTA_CLIENT_ID=$(OKTA_CLIENT_ID) -e OKTA_CLIENT_SECRET=$(OKTA_CLIENT_SECRET) $(containerRegistry)/$(imageRepository):$(tag)'
+              
+# - stage: DeployToProduction
+#   # condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
+#   jobs:
+#   - deployment: production
+#     displayName: Deploy to Production
+#     environment:
+#       name: production
+#       resourceType: VirtualMachine
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - task: Bash@3
+#             displayName: Stop Current Container
+#             inputs:
+#               targetType: 'inline'
+#               script: 'docker rm -f  weighttracker || true'
+#           - task: Docker@2
+#             displayName: 'Login to Registry'
+#             inputs:
+#               containerRegistry: $(dockerRegistryServiceConnection)
+#               command: 'login'
+#           - task: Bash@3
+#             displayName: Pull image
+#             inputs:
+#               targetType: 'inline'
+#               script: 'docker pull $(containerRegistry)/$(imageRepository):$(tag)'
+#           - task: Bash@3
+#             displayName:  Run Container
+#             inputs:
+#               targetType: 'inline'
+#               script: 'docker run -d --name weighttracker -p 8080:8080 -e PGHOST=$(PG_HOST) -e PORT=$(PORT) -e HOST=$(HOST) -e PGUSERNAME=$(PG_USERNAME) -e PGDATABASE=postgres -e PGPASSWORD=$(PG_PASSWORD) -e PGPORT=$(PG_PORT) -e HOST_URL=$(HOST_URL) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(OKTA_ORG_URL) -e OKTA_CLIENT_ID=$(OKTA_CLIENT_ID) -e OKTA_CLIENT_SECRET=$(OKTA_CLIENT_SECRET) $(containerRegistry)/$(imageRepository):$(tag)'              
