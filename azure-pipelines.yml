@@ -23,7 +23,7 @@ stages:
   - job: Build
     displayName: Build
     pool:
-      name: weighttracker-pool
+      name: weight-tracker-pool
       vmImage: $(vmImageName)
     steps:
     - task: Docker@2
