@@ -1,6 +1,6 @@
 # Node.js Weight Tracker
 
-[![Build Status](https://dev.azure.com/parennut/Weight-Tracker/_apis/build/status/Weight-Tracker-CI?branchName=master)](https://dev.azure.com/parennut/Weight-Tracker/_build/latest?definitionId=2&branchName=master)
+[![Build Status](https://dev.azure.com/parennut/Weight-Tracker-CICD/_apis/build/status/renatts.WeightTracker-Docker?branchName=master)](https://dev.azure.com/parennut/Weight-Tracker-CICD/_build/latest?definitionId=4&branchName=master)
 
 ---
 
