@@ -40,7 +40,7 @@ stages:
 - stage: DeployToStaging
   displayName: Deploy to Staging 
   variables:
-  - group: staging
+  - group: Staging-variables
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   jobs:
   - deployment: staging
@@ -72,8 +72,9 @@ stages:
               script: 'docker run -d --restart=always --name weighttracker -p 8080:8080 -e PGHOST=$(PG_HOST) -e PORT=$(PORT) -e HOST=$(HOST) -e PGUSERNAME=$(PG_USERNAME) -e PGDATABASE=postgres -e PGPASSWORD=$(PG_PASSWORD) -e PGPORT=$(PG_PORT) -e HOST_URL=$(HOST_URL) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(OKTA_ORG_URL) -e OKTA_CLIENT_ID=$(OKTA_CLIENT_ID) -e OKTA_CLIENT_SECRET=$(OKTA_CLIENT_SECRET) $(containerRegistry)/$(imageRepository):$(tag)'
 
 - stage: DeployToProduction
+  displayName: Deploy to Production 
   variables:
-  - group: production
+  - group: Production-variables
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   jobs:
   - deployment: production
