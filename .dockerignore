@@ -1,6 +1,6 @@
 **/Dockerfile
 **/Dockerfile.archive
-**/docker-compose.yml
+**/.yml
 **/node_modules/
 **/.dockerignore
 **/.git
