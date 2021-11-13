@@ -1,60 +1,46 @@
-# Node.js Weight Tracker
+# Node.js Weight Tracker with <img height="40px" src="https://user-images.githubusercontent.com/83014719/141646019-0eefacfd-8315-4fde-a667-6d7aa3aa12e1.PNG"> & <img height="50px" src="https://www.vectorlogo.zone/logos/docker/docker-ar21.svg">
+
+
+
 
 [![Build Status](https://dev.azure.com/parennut/Weight-Tracker-CICD/_apis/build/status/renatts.WeightTracker-Docker?branchName=master)](https://dev.azure.com/parennut/Weight-Tracker-CICD/_build/latest?definitionId=4&branchName=master)
 
----
+##  Infrastructure requirements
+<img width="550" alt="docker-cicd" src="https://user-images.githubusercontent.com/83014719/141643377-fd22a44c-e852-45a5-b4d5-7a2380c4f6a9.png">
 
-## Database server configuration
+###  Install Docker to all virtual machines using this commands
+* `sudo apt-get update`
+* `sudo apt-get upgrade`
+* `sudo apt install docker.io`
+* `systemctl start docker`
+* `systemctl enable docker`
+* `docker --version` - for checking docker version on virtual machine
 
-* Connect to the remote server by using `ssh -i [path to id_rsa]/id_rsa ubuntu@[ database server IP address]`
-* Run `sudo apt update` and `sudo apt upgrade`
-* Install PostgreSQL 12 by using `sudo apt install postgresql-12`
-* Test PostgreSQL connection `sudo su - postgres`
-* Reset the password `psql -c "alter user postgres with password 'Y0urV3RYstr0nGpa22w0rD'"`
-* `psql` and then `\conninfo` to see connection details.
-* Configure remote connection by using `sudo nano /etc/postgresql/13/main/postgresql.conf`
-* Uncomment line 59 and change the Listen address `listen_addresses = '*'`
-* Also set PostgreSQL to accept remote connections from allowed hosts `sudo nano /etc/postgresql/13/main/pg_hba.conf`
-* Add `host all all 0.0.0.0/0 md5`
-* After the change, restart postgresql service `sudo systemctl restart postgresql`
-* Install [pgAdmin4](https://computingforgeeks.com/how-to-install-pgadmin-4-on-ubuntu/) (not neccesary)
-* For working with pgAdmin 4 open your browser at `http://[ServerIP_or_domain]/pgadmin4`
-* Login by using email address and password
-* Add a PostgreSQL server to administer with pgAdmin by clicking on `Add New Server`.
-* Under the `General` section, give your server a name & description.
-* Under `Connection` tab, provide access details – DB host, DB port, DB user and Password.
-* Click `Save` button to save the configurations.
-* If you were successful adding the server, the name will appear in the left sidebar
-
-## App server configuration
-
-* Connect to the remote server by using `ssh -i [path to id_rsa]/id_rsa ubuntu@[ app server IP address]`
-* Install Git if neccesary with `sudo apt-get install git` 
-* Clone that repo using `git clone https://github.com/renatts/bootcamp-app.git`
-* Run `sudo apt install npm nodejs` (`node -v` `npm -v` for checking version)
-* [Node.js](https://nodejs.org/) version must be 12.x or higher
-* Initialize npm: `npm init -y`
-* Run `sudo npm install` to install the dependencies
-* Create a [free Okta developer account](https://developer.okta.com/) and add a web application for this app
-* Don't forget to update `IP address` in applications section!
-* Create `.env` file (like on the picture) and change the values to yours: 
-![env_sample](https://user-images.githubusercontent.com/83014719/134813723-7f57c1ce-0361-4699-afe2-f79c647ec560.jpg)
-* Initialize the PostgreSQL database by running `npm run initdb`
-* Run `npm run dev` to start the application.
-
-### Reboot configuration (App server)
-* `sudo npm install pm2@latest -g`
-* `sudo pm2 start npm -- run dev`
-* `sudo pm2 save`
-* `sudo pm2 startup`
-* `sudo systemctl daemon-reload`
-* `sudo systemctl enable pm2-root.service`
-* `sudo systemctl status pm2-root.service` (for service status)
+### Give docker necessary permissions
+* `sudo usermod -a -G docker $USER`
+* `sudo reboot`
 
 ---
+##  CI/CD pipeline requirements
+<img width="550" alt="docker-cicd" src="https://user-images.githubusercontent.com/83014719/141643375-c23675c0-72ac-4eb4-94c5-9703763a38f9.png">
 
+### Part I
+* Create `azure-pipelines.yaml` file
+* Create stages: `Build, Deploy to Staging, Deploy to Production` 
+* On stage `Build` add `Push` task for pushing the build to [ACR](https://azure.microsoft.com/en-us/services/container-registry/#overview) (Azure Container Registry) repository.
+* On Deploy stages add `Pull` task for pulling the latest pushed image from [ACR](https://azure.microsoft.com/en-us/services/container-registry/#overview) repository.
+* Create variables group for each environment in Library.
+* Run the containers by using `docker run -d --restart=always --name weighttracker -p 8080:8080 -e <your-environment-variables> $(containerRegistry)/$(imageRepository):$(tag)`
 
+### Part II
+* In your `azure-pipelines.yaml` file add a condition for triggering the Deploy stages only from `master` branch.
+* Create branch with `feature/` prefix.
+* Unlike `master` branch, the `feature` branch must trigger only the CI (Build and Push).
+* Create branch policy to not be able to push changes into the `master` branch.
+* Run your pipeline on `feature/*` branch.
+* Check your pipeline (must skip the deployment stages).
+* Create pull request from `feature/*` branch to `master`, and approve the request after it.
+* Check your CI/CD pipeline (must be triggered after accepting the pull request).
+* Check if your pipeline has succeeded.
 
-Or you can create your own [service](https://www.shubhamdipt.com/blog/how-to-create-a-systemd-service-in-linux/).
-* For your service you will need to create a script file that will contain commands for booting your application.
-
+<img width="550" alt="docker-cicd" src="https://user-images.githubusercontent.com/83014719/141645085-6063daa6-8e25-46d0-96d8-46ecda3fa2de.png">
