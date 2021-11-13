@@ -1,12 +1,11 @@
 # Node.js Weight Tracker with <img height="40px" src="https://user-images.githubusercontent.com/83014719/141646019-0eefacfd-8315-4fde-a667-6d7aa3aa12e1.PNG"> & <img height="50px" src="https://www.vectorlogo.zone/logos/docker/docker-ar21.svg">
 
-
-
-
 [![Build Status](https://dev.azure.com/parennut/Weight-Tracker-CICD/_apis/build/status/renatts.WeightTracker-Docker?branchName=master)](https://dev.azure.com/parennut/Weight-Tracker-CICD/_build/latest?definitionId=4&branchName=master)
 
 ##  Infrastructure requirements
 <img width="550" alt="docker-cicd" src="https://user-images.githubusercontent.com/83014719/141643377-fd22a44c-e852-45a5-b4d5-7a2380c4f6a9.png">
+
+### Create the environments infrastructure using ![Terraform Repository](https://github.com/renatts/Terraform-Multiple-Environments)
 
 ###  Install Docker to all virtual machines using this commands
 * `sudo apt-get update`
